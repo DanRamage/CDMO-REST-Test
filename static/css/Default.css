@@ -1,0 +1,126 @@
+﻿
+body 
+{
+	background-position: center top;
+	background-color: #69673e;
+	background-repeat:no-repeat;
+	font-style:normal;
+	margin: 0 0 0 0;
+	padding:0px;
+	display:block;
+	text-align: left;
+	font-family: "verdana";
+    font-size: 12px;
+  }
+  
+   .main
+	{
+	     height:500px;
+	     vertical-align:top;
+	     width:971px;
+		 
+	}
+	   .bottom
+	{
+	    font-size: 10px;
+		 
+	}
+	
+.main_middle
+{
+    width:957px;
+     height:41px;
+    text-align:left;
+    vertical-align:top;
+}
+
+
+.bg_left
+{
+    width: 327px;
+    background: url(bg_left.gif) no-repeat;
+    height:297px;
+    background-position:right top;
+    
+}
+
+.bg_middle
+{
+    width: 971px;
+    vertical-align:top;
+    background-color:White;
+}
+
+   
+.bg_top
+{
+    vertical-align:top;
+}   
+
+.bg_right
+{
+    width:323px;
+    background: url(bg_right.gif) no-repeat;
+     height:283px;
+     background-position:left top;
+    }
+    
+  .bg_right_bottom    
+ {
+    background: url(bg_right.jpg) repeat-y;
+  
+      }
+    
+    .bg_right_bottom_home    
+ {
+    width:11px;
+    background: url(bg_right_bottom.gif) no-repeat; 
+     height:769px;
+     background-position:left top;
+    }
+    
+   
+    .bg_foot
+    {
+        background:url(bg_foot.jpg) repeat-x;
+        height:84px;
+      
+    }
+    .bg_foot_left
+    {
+        width:947px;
+        color:White;
+        text-align:right;
+        text-decoration:none;
+         font-size:11px;
+          font-weight:bold;
+          line-height: 20px;
+    }
+    .bg_logo
+    {
+        background:url(bg_logo.jpg) no-repeat right;
+        width:83px;
+	
+            }
+   
+    .reserve_head
+    {
+   width:815px;
+    text-align: left;
+	font-size: 18px;
+  font-family:Trajan Pro;
+  color:White;
+  font-weight: bold;
+  }
+  
+   .reserve_space
+   {
+   height:5px;
+   }
+ 
+          .sitepath_space
+          {
+              height:25px;
+              text-align:left;
+           }
+ 
