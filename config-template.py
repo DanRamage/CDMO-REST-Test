@@ -9,6 +9,7 @@ if PRODUCTION_MACHINE:
 else:
     LOGFILE = './rest_data.log'
 
+#IN the connection strings, replace the <replace .....> with the appropriate host, user and password.
 if PRODUCTION_MACHINE:
     import urllib
 
