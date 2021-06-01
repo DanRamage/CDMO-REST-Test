@@ -1,10 +1,8 @@
 import os
 
-
 SECRET_API_KEY = os.urandom((32))
 PRODUCTION_MACHINE = True
 USE_PRODUCTION_DATABASES = True
-
 
 if PRODUCTION_MACHINE:
     LOGFILE = 'C:\\temp\\rest_data.log'
