@@ -19,9 +19,9 @@ if PRODUCTION_MACHINE:
         CDMO_QUOTED = urllib.parse.quote_plus('DRIVER={ODBC Driver 17 for SQL Server};SERVER=<replace with server ip>;DATABASE=CDMO;UID=<replace with DB username>;PWD=<replace with password>;TDS_Version=8.0;Port=1433;')
         CDMO_SQL_SERVER_CONN = 'mssql+pyodbc:///?odbc_connect={}'.format(CDMO_QUOTED)
     else:
-        RTS_QUOTED = urllib.parse.quote_plus('DRIVER={ODBC Driver 17 for SQL Server};SERVER=<replace with server ip>;DATABASE=RTS;UID=odbcrtsremote;PWD=<replace with password>;TDS_Version=8.0;Port=1433;')
+        RTS_QUOTED = urllib.parse.quote_plus('DRIVER={ODBC Driver 17 for SQL Server};SERVER=<replace with server ip>;DATABASE=RTS;UID=<replace with DB username>;PWD=<replace with password>;TDS_Version=8.0;Port=1433;')
         RTS_SQL_SERVER_CONN = 'mssql+pyodbc:///?odbc_connect={}'.format(RTS_QUOTED)
-        CDMO_QUOTED = urllib.parse.quote_plus('DRIVER={ODBC Driver 17 for SQL Server};SERVER=<replace with server ip>;DATABASE=CDMO;UID=odbcrtsremote;PWD=<replace with password>;TDS_Version=8.0;Port=1433;')
+        CDMO_QUOTED = urllib.parse.quote_plus('DRIVER={ODBC Driver 17 for SQL Server};SERVER=<replace with server ip>;DATABASE=CDMO;UID=<replace with DB username>;PWD=<replace with password>;TDS_Version=8.0;Port=1433;')
         CDMO_SQL_SERVER_CONN = 'mssql+pyodbc:///?odbc_connect={}'.format(CDMO_QUOTED)
 else:
     import urllib
