@@ -2,6 +2,7 @@ from flask import request, render_template, current_app, session, Response, json
 from flask.views import View, MethodView
 from sqlalchemy import desc, inspect, select, Table
 from sqlalchemy.orm import load_only
+from sqlalchemy import or_
 #from sqlakeyset import get_page
 import uuid
 import json
@@ -313,7 +314,8 @@ class NERRReserveStations(BaseStationInfoAPI):
                 real_time = None
                 if int(request.args['RealTime']) == 1:
                     real_time = 'R'
-                recs_q = recs_q.filter(Sampling_Station.Real_Time == real_time)
+                recs_q = recs_q.filter(or_(Sampling_Station.Real_Time == real_time,
+                                           Sampling_Station.HADS_ID != None))
 
             features = {
                 'type': 'FeatureCollection',
