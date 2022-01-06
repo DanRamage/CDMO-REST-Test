@@ -625,16 +625,24 @@ class StationInfoAPI(BaseStationInfoAPI):
 
     def get_battery_voltage(self, station, begin_date, end_date):
         from app import get_cdmo_db
-        from models.cdmo_db_models import batteryVoltage
+        from models.cdmo_db_models import batteryVoltage, StationBatteryVoltage
         try:
             start_time = time.time()
             db_obj = get_cdmo_db()
-            recs = db_obj.query(batteryVoltage) \
-                .filter(batteryVoltage.DateTimeStamp >= begin_date) \
-                .filter(batteryVoltage.DateTimeStamp < end_date) \
-                .filter(batteryVoltage.samplingStation == station) \
-                .order_by(batteryVoltage.DateTimeStamp).all()
-                #.order_by(desc('DateTimeStamp')).all()
+            if station.lower().find('wq') == -1:
+                recs = db_obj.query(batteryVoltage) \
+                    .filter(batteryVoltage.DateTimeStamp >= begin_date) \
+                    .filter(batteryVoltage.DateTimeStamp < end_date) \
+                    .filter(batteryVoltage.samplingStation == station) \
+                    .order_by(batteryVoltage.DateTimeStamp).all()
+                    #.order_by(desc('DateTimeStamp')).all()
+            else:
+                qry = db_obj.query(StationBatteryVoltage) \
+                    .filter(StationBatteryVoltage.DateTimeStamp >= begin_date) \
+                    .filter(StationBatteryVoltage.DateTimeStamp < end_date) \
+                    .filter(StationBatteryVoltage.samplingStation == station) \
+                    .order_by(StationBatteryVoltage.DateTimeStamp)
+                recs = qry.all()
             current_app.logger.debug("IP: %s Battery voltage query for %s finished in %f seconds." % \
                                      (request.remote_addr, station, time.time()-start_time))
             return recs
@@ -678,13 +686,6 @@ class StationInfoAPI(BaseStationInfoAPI):
                 recs_q = db_obj.query(db_table)
             #user_session_nfo = self.check_session_id()
             if 'page' not in request.args:
-                '''
-                recs_q = db_obj.query(db_table) \
-                    .filter(db_table.DateTimeStamp >= begin_date) \
-                    .filter(db_table.DateTimeStamp < end_date) \
-                    .order_by(db_table.DateTimeStamp)
-                '''
-
                 recs_q = recs_q.filter(db_table.DateTimeStamp >= begin_date.strftime("%Y-%m-%d %H:%M:%S"))
                 recs_q = recs_q.filter(db_table.DateTimeStamp < end_date.strftime("%Y-%m-%d %H:%M:%S"))
                 recs_q = self.filter_query(recs_q, ';')
@@ -727,21 +728,6 @@ class StationInfoAPI(BaseStationInfoAPI):
                                 append_list.append({'DateTimeStamp': sig_rec.DateTimeStamp,
                                                     'signalStrength': sig_rec.signalStrength})
 
-
-                        '''
-                        for sig_rec in sig_recs:
-                            if len(rec_list):
-                                for date_rec in rec_list:
-                                param_rec = [param_rec for param_rec in rec_list if param_rec['DateTimeStamp'] == sig_rec.DateTimeStamp]
-                                if len(param_rec):
-                                    param_rec[0]['signalStrength'] = sig_rec.signalStrength
-                                else:
-                                    append_list.append({'DateTimeStamp': sig_rec.DateTimeStamp,
-                                                     'signalStrength': sig_rec.signalStrength})
-                            else:
-                                append_list.append({'DateTimeStamp': sig_rec.DateTimeStamp,
-                                                 'signalStrength': sig_rec.signalStrength})
-                        '''
                         if len(append_list):
                             rec_list.extend(append_list)
                 if batt_recs is not None:
@@ -750,21 +736,13 @@ class StationInfoAPI(BaseStationInfoAPI):
                     for ndx,date_rec in enumerate(batt_dates_list):
                         if len(rec_list):
                             try:
-                                rec_ndx = rec_dates_list.index(date_rec)
                                 batt_rec = batt_recs[ndx]
+                                rec_ndx = rec_dates_list.index(date_rec)
                                 rec_list[rec_ndx]['batteryVolts'] = batt_rec.batteryVolts
                             except ValueError as e:
                                 append_list.append({'DateTimeStamp': batt_rec.DateTimeStamp,
                                                  'batteryVolts': batt_rec.batteryVolts})
 
-                            '''
-                            param_rec = [param_rec for param_rec in rec_list if param_rec['DateTimeStamp'] == batt_rec.DateTimeStamp]
-                            if len(param_rec):
-                                param_rec[0]['batteryVolts'] = batt_rec.batteryVolts
-                            else:
-                                append_list.append({'DateTimeStamp': batt_rec.DateTimeStamp,
-                                                 'batteryVolts': batt_rec.batteryVolts})
-                            '''
                         else:
                             append_list.append({'DateTimeStamp': batt_rec.DateTimeStamp,
                                              'batteryVolts': batt_rec.batteryVolts})

@@ -120,6 +120,18 @@ class batteryVoltage(Base):
     samplingStation = Column(String(50))
     id = Column(Integer, primary_key=True)
 
+#This table is for the WQ stations at the moment. We decode the actual station voltage as opposed to the
+#sonde voltages. The batteryVoltage table above is decoding the battery voltage for WQ passed in the data payload
+#which is not necessarily the station voltage.
+#We alias the columns so the class members are the same as the batteryVoltage table above.
+class StationBatteryVoltage(Base):
+  __tablename__ = 'StationBatteryVoltage'
+
+  id = Column("ID", Integer, primary_key=True)
+  DateTimeStamp = Column(DateTime)
+  samplingStation = Column("SamplingStation", String(16))
+  batteryVolts = Column("Voltage", Float())
+
 
 class NERR_Sites(Base):
     metadata = MetaData()
