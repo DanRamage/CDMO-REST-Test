@@ -653,8 +653,6 @@ class StationInfoAPI(BaseStationInfoAPI):
     def get_query_specific_data(self, station, begin_date, end_date):
         from app import get_rts_db
 
-        if station == 'acegpwq':
-            station
         start_time = time.time()
         ret_recs = None
         # CHeck to see if one of the filters is either signal or battery voltage.
@@ -705,7 +703,15 @@ class StationInfoAPI(BaseStationInfoAPI):
                             rec_list.append(rec_row)
 
                 if sig_recs is not None or batt_recs is not None:
-                    rec_dates_list = [rec['DateTimeStamp'] for rec in rec_list]
+                    if len(rec_list):
+                        rec_dates_list = [rec['DateTimeStamp'] for rec in rec_list]
+                    else:
+                    #This can happen if we're not saving the stations results to the database. Usually when
+                    #a station is coming online and we're debugging it.
+                        if len(sig_recs):
+                            rec_dates_list = [rec.DateTimeStamp for rec in sig_recs]
+                        elif len(batt_recs):
+                            rec_dates_list = [rec.DateTimeStamp for rec in batt_recs]
 
                 if sig_recs is not None:
                         append_list = []
@@ -715,9 +721,9 @@ class StationInfoAPI(BaseStationInfoAPI):
                         #rec_dates_set = set(rec['DateTimeStamp'] for rec in rec_list)
                         #merged_set = rec_dates_set.union(sig_dates_set)
                         for ndx,date_rec in enumerate(sig_dates_list):
+                            sig_rec = sig_recs[ndx]
                             if len(rec_list):
                                 try:
-                                    sig_rec = sig_recs[ndx]
                                     rec_ndx = rec_dates_list.index(date_rec)
                                     rec_list[rec_ndx]['signalStrength'] = sig_rec.signalStrength
                                 except ValueError as e:
@@ -734,9 +740,9 @@ class StationInfoAPI(BaseStationInfoAPI):
                     append_list = []
                     batt_dates_list = [batt_rec.DateTimeStamp for batt_rec in batt_recs]
                     for ndx,date_rec in enumerate(batt_dates_list):
+                        batt_rec = batt_recs[ndx]
                         if len(rec_list):
                             try:
-                                batt_rec = batt_recs[ndx]
                                 rec_ndx = rec_dates_list.index(date_rec)
                                 rec_list[rec_ndx]['batteryVolts'] = batt_rec.batteryVolts
                             except ValueError as e:
@@ -746,6 +752,7 @@ class StationInfoAPI(BaseStationInfoAPI):
                         else:
                             append_list.append({'DateTimeStamp': batt_rec.DateTimeStamp,
                                              'batteryVolts': batt_rec.batteryVolts})
+
                     if len(append_list):
                         rec_list.extend(append_list)
 
