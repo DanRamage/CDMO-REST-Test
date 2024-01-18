@@ -1,6 +1,6 @@
 from sqlalchemy import Table, Column, Integer, Float, String, MetaData, DateTime, Boolean, Text, SmallInteger, \
     REAL
-import jwt
+#import jwt
 from cdmo_db import Base
 
 """

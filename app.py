@@ -145,8 +145,8 @@ def create_app():
     flask_app.secret_key = SECRET_API_KEY
     init_logging(flask_app)
 
-    rts_db.connectDB(RTS_SQL_SERVER_CONN)
-    cdmo_db.connectDB(CDMO_SQL_SERVER_CONN)
+    rts_db.connectDB(RTS_SQL_SERVER_CONN, flask_app.logger)
+    cdmo_db.connectDB(CDMO_SQL_SERVER_CONN, flask_app.logger)
 
     build_url_rules(flask_app)
     atexit.register(shutdown_all)
