@@ -232,7 +232,8 @@ class BaseStationInfoAPI(MethodView):
 
     def get_model_class(self, query):
         classes = []
-        for t in query.selectable.locate_all_froms():
+        for t in query.selectable.froms:
+        #for t in query.selectable.locate_all_froms():
             if type(t) == Table:
                 classes.append(get_class_by_tablename(t.name))
             else:

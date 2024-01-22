@@ -20,18 +20,20 @@ def get_class_by_tablename(tablename):
     :return: Class reference or None.
     """
     table_obj = None
-    for c in Base._decl_class_registry.values():
+    for c in Base.registry._class_registry.values():
+    #for c in Base._decl_class_registry.values():
         if hasattr(c, '__tablename__') and c.__tablename__ == tablename:
             table_obj = c
             break
     return table_obj
 
 class cdmo_db:
-    def __init__(self, use_logging=True):
+    def __init__(self):
         self.dbEngine = None
         self.metadata = None
         self.Session = None
         self.connection = None
+        self._logger = None
 
     '''
     def __del__(self):
@@ -45,7 +47,7 @@ class cdmo_db:
         except Exception as e:
             current_app.logger.exception(e)
     '''
-    def connectDB(self, connect_string, printSQL=False):
+    def connectDB(self, connect_string, logger, printSQL=False):
         try:
             # Connect to the database
             self.dbEngine = create_engine(connect_string, echo=printSQL)
@@ -60,7 +62,7 @@ class cdmo_db:
 
             return (True)
         except (exc.OperationalError, exc.InterfaceError, Exception) as e:
-            current_app.logger.exception(e)
+            logger.exception(e)
         return (False)
 
     def remove_session(self):
