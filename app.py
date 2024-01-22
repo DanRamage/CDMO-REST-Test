@@ -4,45 +4,50 @@ from logging.handlers import RotatingFileHandler
 from logging import Formatter
 import atexit
 
-
 from flask_cors import CORS
 from cdmo_db import cdmo_db
 from config import SECRET_API_KEY, RTS_SQL_SERVER_CONN, CDMO_SQL_SERVER_CONN, LOGFILE, PRODUCTION_MACHINE
 import signal
 
-#from apispec import APISpec
+# from apispec import APISpec
 
 rts_db = cdmo_db()
 cdmo_db = cdmo_db()
 
+
 class GracefulKiller:
-  kill_now = False
-  def __init__(self, rts_db_conn, cdmo_db_conn):
-    signal.signal(signal.SIGINT, self.exit_gracefully)
-    signal.signal(signal.SIGTERM, self.exit_gracefully)
-    self._rts_db_conn = rts_db_conn
-    self._cdmo_db_conn = cdmo_db_conn
-  def exit_gracefully(self,signum, frame):
-    self._rts_db_conn.disconnect()
-    self._cdmo_db_conn.disconnect()
-    self.kill_now = True
+    kill_now = False
+
+    def __init__(self, rts_db_conn, cdmo_db_conn):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        self._rts_db_conn = rts_db_conn
+        self._cdmo_db_conn = cdmo_db_conn
+
+    def exit_gracefully(self, signum, frame):
+        self._rts_db_conn.disconnect()
+        self._cdmo_db_conn.disconnect()
+        self.kill_now = True
+
 
 def init_logging(app):
-  app.logger.setLevel(logging.DEBUG)
-  file_handler = RotatingFileHandler(filename = LOGFILE)
-  file_handler.setLevel(logging.DEBUG)
-  file_handler.setFormatter(Formatter('%(asctime)s,%(levelname)s,%(module)s,%(funcName)s,%(lineno)d,%(message)s'))
-  app.logger.addHandler(file_handler)
+    app.logger.handlers.clear()
+    app.logger.setLevel(logging.DEBUG)
+    file_handler = RotatingFileHandler(filename=LOGFILE)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(Formatter('%(asctime)s,%(levelname)s,%(module)s,%(funcName)s,%(lineno)d,%(message)s'))
+    app.logger.addHandler(file_handler)
 
-  app.logger.debug("Logging initialized")
+    app.logger.debug("Logging initialized")
 
-  return
+    return
+
 
 def build_url_rules(app):
     from rest_views import StationInfoAPI, \
         CMDOAPIHelp, \
         HADSLatestAPI, \
-        NERRSitesAPI,\
+        NERRSitesAPI, \
         NERRStationsInfo, \
         Login, \
         NERRUpdateAlerts, \
@@ -111,8 +116,6 @@ def build_url_rules(app):
         app.add_url_rule('/cdmorestdata/deletealerts',
                          view_func=NERRDeleteAlerts.as_view('delete_alert'), methods=['POST'])
 
-
-
     @app.errorhandler(500)
     def internal_error(exception):
         app.logger.exception(exception)
@@ -128,9 +131,10 @@ def shutdown_all():
     rts_db.disconnect()
     cdmo_db.disconnect()
 
+
 def create_app():
     flask_app = Flask(__name__)
-    #Enable Cross origin
+    # Enable Cross origin
     if not PRODUCTION_MACHINE:
         cors = CORS(flask_app, resources={r"/cdmorestdata/login": {"origins": "*"},
                                           r"/cdmorestdata/updatealerts": {"origins": "*"},
@@ -153,7 +157,9 @@ def create_app():
     killer = GracefulKiller(rts_db, cdmo_db)
     return flask_app
 
+
 app = create_app()
+
 
 def get_rts_db():
     """Opens a new database connection if there is none yet for the
@@ -163,6 +169,8 @@ def get_rts_db():
         g.rts_session = True
     current_app.logger.debug("Returning RTS Session.")
     return rts_db.Session()
+
+
 def get_cdmo_db():
     """Opens a new database connection if there is none yet for the
     current application context.
@@ -171,6 +179,8 @@ def get_cdmo_db():
         g.cdmo_session = True
     current_app.logger.debug("Returning CDMO Session.")
     return cdmo_db.Session()
+
+
 @app.teardown_appcontext
 def remove_session(error):
     """Closes the database again at the end of the request."""
@@ -180,6 +190,7 @@ def remove_session(error):
     if hasattr(g, 'cdmo_session'):
         cdmo_db.remove_session()
         current_app.logger.debug("Removing CDMO Session.")
+
 
 '''
 def database_connect(conn_string):
@@ -221,6 +232,8 @@ def close_db(error):
         g.cdmo_db.remove_session()
         #g.cdmo_db.disconnect()
 '''
+
+
 @app.route('/resttest/hello')
 def hello_world():
     return 'Hello World!'
