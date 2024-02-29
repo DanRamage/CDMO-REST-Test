@@ -1055,7 +1055,7 @@ class Login(MethodView):
                         'iat': datetime.utcnow(),
                         'exp': datetime.utcnow() + timedelta(minutes=30)},
                         current_app.config['SECRET_KEY'])
-                    token_json = jsonify({'token': token.decode('UTF-8'),
+                    token_json = jsonify({'token': token,
                                           'cdmo_access': cdmo_user.CDMO_Access,
                                           'reserve': cdmo_user.Reserve_Only})
                     return token_json
