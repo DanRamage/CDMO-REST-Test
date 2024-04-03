@@ -1,13 +1,11 @@
 from flask import request, render_template, current_app, session, Response, jsonify
 from flask.views import View, MethodView
 from sqlalchemy import desc, inspect, select, Table
-from sqlalchemy.orm import load_only
 from sqlalchemy import or_
-#from sqlakeyset import get_page
 import uuid
 import json
 import time
-# from requests import Request, Session
+from functools import wraps
 import requests
 from datetime import datetime, timedelta
 import pytz
@@ -341,16 +339,18 @@ class NERRReserveStations(BaseStationInfoAPI):
 
 
 def token_required(f):
-
+    @wraps(f)
     def decorator(*args, **kwargs):
+
         import jwt
         from app import get_cdmo_db
         from models.cdmo_db_models import CDMO_Users
 
+        #current_app.logger.debug(f"IP: {request.remote_addr} token_required.")
         auth_headers = request.headers.get('Authorization', '').split()
 
         invalid_msg = {
-            'message': 'Invalid token. Registeration and / or authentication required',
+            'message': 'Invalid token. Registration and / or authentication required',
             'authenticated': False
         }
         expired_msg = {
@@ -363,7 +363,8 @@ def token_required(f):
 
         try:
             token = auth_headers[1]
-            data = jwt.decode(token, current_app.config['SECRET_KEY'])
+
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
             try:
                 cdmo_db = get_cdmo_db()
                 cdmo_user = cdmo_db.query(CDMO_Users) \
@@ -377,11 +378,15 @@ def token_required(f):
             #user = User.query.filter_by(email=data['sub']).first()
             if not cdmo_user:
                 raise RuntimeError('User not found')
-            return f(cdmo_user, *args, **kwargs)
+            return f(*args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify(expired_msg), 401 # 401 is Unauthorized HTTP status code
-        except (jwt.InvalidTokenError, Exception) as e:
-            print(e)
+        except jwt.InvalidTokenError as e:
+            current_app.logger.error(f"IP: {request.remote_addr} auth headers: {auth_headers} "
+                                     f"invalid token. Exception: {e}")
+            return jsonify(invalid_msg), 401
+        except Exception as e:
+            current_app.logger.exception(e)
             return jsonify(invalid_msg), 401
 
     return decorator
@@ -421,7 +426,7 @@ class NERRAlerts(BaseStationInfoAPI):
 
 class NERRUpdateAlerts(BaseStationInfoAPI):
     decorators = [token_required]
-    def post(self, cdmo_user):
+    def post(self):
         start_time = time.time()
         from app import get_cdmo_db
         from models.cdmo_db_models import Sampling_Station
@@ -510,7 +515,7 @@ class NERRToggleAlerts(BaseStationInfoAPI):
     '''
 
     decorators = [token_required]
-    def post(self, cdmo_user):
+    def post(self):
         start_time = time.time()
         from app import get_cdmo_db
         from models.cdmo_db_models import Sampling_Station
@@ -1054,7 +1059,9 @@ class Login(MethodView):
                         'sub': cdmo_user.User_name,
                         'iat': datetime.utcnow(),
                         'exp': datetime.utcnow() + timedelta(minutes=30)},
-                        current_app.config['SECRET_KEY'])
+                        current_app.config['SECRET_KEY'],
+                        algorithm="HS256")
+
                     token_json = jsonify({'token': token,
                                           'cdmo_access': cdmo_user.CDMO_Access,
                                           'reserve': cdmo_user.Reserve_Only})
@@ -1073,7 +1080,7 @@ class NERRDeleteAlerts(BaseStationInfoAPI):
     not a relational table) along with the metadata for the station. So to delete we just None out the values.
     '''
     decorators = [token_required]
-    def post(self, cdmo_user):
+    def post(self):
         start_time = time.time()
         from app import get_cdmo_db
         from models.cdmo_db_models import Sampling_Station

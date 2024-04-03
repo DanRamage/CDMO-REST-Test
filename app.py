@@ -1,12 +1,16 @@
+import json
+import os.path
+import secrets
 from flask import Flask, g, current_app
 import logging.config
 from logging.handlers import RotatingFileHandler
 from logging import Formatter
 import atexit
-
+from datetime import datetime, timedelta
 from flask_cors import CORS
 from cdmo_db import cdmo_db
-from config import SECRET_API_KEY, RTS_SQL_SERVER_CONN, CDMO_SQL_SERVER_CONN, LOGFILE, PRODUCTION_MACHINE
+from config import (SECRET_API_KEY, SECRET_KEY_FILE, SECRET_KEY_ROTATE_HOURS,
+                    RTS_SQL_SERVER_CONN, CDMO_SQL_SERVER_CONN, LOGFILE, PRODUCTION_MACHINE)
 import signal
 
 # from apispec import APISpec
@@ -132,6 +136,40 @@ def shutdown_all():
     cdmo_db.disconnect()
 
 
+def load_secret_key(app):
+    current_time = datetime.now()
+    #CHeck and see if we have a secret key file, if so we use that, otherwise the default from config.py.
+    secret_key = SECRET_API_KEY
+    key_file_path = os.path.join(app.root_path, SECRET_KEY_FILE)
+    if os.path.isfile(key_file_path):
+        app.logger.debug(f"Secret Key File: {key_file_path} found.")
+        rotate_key = False
+        with open(key_file_path, "r") as key_file_obj:
+            json_key_data = json.load(key_file_obj)
+            #Check the last rotated time, if we've exceeded it, we'll regen a new key.
+            try:
+                key_rotated_time = datetime.strptime(json_key_data['last_rotated'], "%Y-%m-%d %H:%M:%S")
+                app.logger.debug(f"Key rotated time: {key_rotated_time}.")
+                if current_time - key_rotated_time >= timedelta(hours=SECRET_KEY_ROTATE_HOURS):
+                    app.logger.debug(f"Key time {key_rotated_time} expired, rotating.")
+                    new_key = secrets.token_hex(32)
+                    json_key_data['secret_key'] = new_key
+                    json_key_data['last_rotated'] = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                    rotate_key = True
+            except Exception as e:
+                app.logger.exception(e)
+        if rotate_key:
+            try:
+                with open(key_file_path, "w") as key_file_obj:
+                    app.logger.debug(f"Saving secret key file: {key_file_path}.")
+                    json.dump(json_key_data, key_file_obj)
+            except Exception as e:
+                app.logger.exception(e)
+        secret_key = json_key_data['secret_key']
+
+    app.secret_key = secret_key
+    return secret_key
+
 def create_app():
     flask_app = Flask(__name__)
     # Enable Cross origin
@@ -145,10 +183,8 @@ def create_app():
                                           r"/resttest/cdmorestdata/updatealerts": {"origins": "*"},
                                           r"/resttest/cdmorestdata/togglealerts": {"origins": "*"},
                                           r"/resttest/cdmorestdata/deletealerts": {"origins": "*"}})
-
-    flask_app.secret_key = SECRET_API_KEY
     init_logging(flask_app)
-
+    load_secret_key(flask_app)
     rts_db.connectDB(RTS_SQL_SERVER_CONN, flask_app.logger)
     cdmo_db.connectDB(CDMO_SQL_SERVER_CONN, flask_app.logger)
 
