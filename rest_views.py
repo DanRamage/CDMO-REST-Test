@@ -442,10 +442,96 @@ class NERRUpdateAlerts(BaseStationInfoAPI):
             args = request.args
             station_update.activeAlerts = 'yes'
             try:
-                if len(args['battery_voltage']) and station_update.alertValue != float(args['battery_voltage']):
-                    station_update.alertValue = float(args['battery_voltage'])
+                if 'battery_voltage' in args:
+                    if len(args['battery_voltage']):
+                        if station_update.alertValue != float(args['battery_voltage']):
+                            station_update.alertValue = float(args['battery_voltage'])
+                    else:
+                        station_update.alertValue = None
             except ValueError as e:
                 current_app.logger.exception(e)
+            if 'text_alert_number' in args and station_update.alertNumber != args['text_alert_number']:
+                #We need the number and the cell provider to create the email address.
+                if len(args['cellular_carrier']):
+                    if args['cellular_carrier'] in CELL_CARRIER_EMAIL_HOSTS:
+                        station_update.alertNumber = '%s@%s' % (args['text_alert_number'],  CELL_CARRIER_EMAIL_HOSTS[args['cellular_carrier']])
+            if 'alert_email_primary' in args and station_update.alertEmail != args['alert_email_primary']:
+                station_update.alertEmail = args['alert_email_primary']
+            if 'alert_email_secondary' in args and station_update.alertEmailOther != args['alert_email_secondary']:
+                station_update.alertEmailOther = args['alert_email_secondary']
+            if 'param_1' in args and station_update.alertParam1 != args['param_1']:
+                station_update.alertParam1 = args['param_1']
+            try:
+                if 'param_1_min' in args:
+                    if len(args['param_1_min']):
+                        if station_update.alertValueMin1 != float(args['param_1_min']):
+                            station_update.alertValueMin1 = float(args['param_1_min'])
+                    else:
+                        station_update.alertValueMin1 = None
+            except ValueError as e:
+                current_app.logger.exception(e)
+            try:
+                if 'param_1_max' in args:
+                    if len(args['param_1_max']):
+                        if station_update.alertValueMax1 != float(args['param_1_max']):
+                            station_update.alertValueMax1 = float(args['param_1_max'])
+                    else:
+                        station_update.alertValueMax1 = None
+            except ValueError as e:
+                current_app.logger.exception(e)
+            #If neither min or max have a value, there is no alert so reset the param to None.
+            if station_update.alertValueMax1 is None and station_update.alertValueMin1 is None:
+                station_update.alertParam1 = None
+
+            if 'param_2' in args and station_update.alertParam2 != args['param_2']:
+                station_update.alertParam2 = args['param_2']
+            try:
+                if 'param_2_min' in args:
+                    if len(args['param_2_min']):
+                        if station_update.alertValueMin2 != float(args['param_2_min']):
+                            station_update.alertValueMin2 = float(args['param_2_min'])
+                    else:
+                        station_update.alertValueMin2 = None
+            except ValueError as e:
+                current_app.logger.exception(e)
+            try:
+                if 'param_2_max' in args:
+                    if len(args['param_2_max']):
+                        if station_update.alertValueMax2 != float(args['param_2_max']):
+                            station_update.alertValueMax2 = float(args['param_2_max'])
+                    else:
+                        station_update.alertValueMax2 = None
+            except ValueError as e:
+                current_app.logger.exception(e)
+            #If neither min or max have a value, there is no alert so reset the param to None.
+            if station_update.alertValueMax2 is None and station_update.alertValueMin2 is None:
+                station_update.alertParam2 = None
+
+            if 'param_3' in args and station_update.alertParam3 != args['param_3']:
+                station_update.alertParam3 = args['param_3']
+            try:
+                if 'param_3_min' in args:
+                    if len(args['param_3_min']):
+                        if station_update.alertValueMin3 != float(args['param_3_min']):
+                            station_update.alertValueMin3 = float(args['param_3_min'])
+                    else:
+                        station_update.alertValueMin3 = None
+            except ValueError as e:
+                current_app.logger.exception(e)
+            try:
+                if 'param_3_max' in args:
+                    if len(args['param_3_max']):
+                        if station_update.alertValueMax3 != float(args['param_3_max']):
+                            station_update.alertValueMax3 = float(args['param_3_max'])
+                    else:
+                        station_update.alertValueMax3 = None
+            except ValueError as e:
+                current_app.logger.exception(e)
+            #If neither min or max have a value, there is no alert so reset the param to None.
+            if station_update.alertValueMax3 is None and station_update.alertValueMin3 is None:
+                station_update.alertParam3 = None
+
+            '''
             if (len(args['text_alert_number']) and station_update.alertNumber != args['text_alert_number']):
                 #We need the number and the cell provider to create the email address.
                 if len(args['cellular_carrier']):
@@ -491,6 +577,7 @@ class NERRUpdateAlerts(BaseStationInfoAPI):
                     station_update.alertValueMax3 = float(args['param_3_max'])
             except ValueError as e:
                 current_app.logger.exception(e)
+            '''
             resp = {
                 'message': 'Alerts update successful'
             }
