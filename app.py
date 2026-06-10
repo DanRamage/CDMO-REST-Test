@@ -37,6 +37,11 @@ class GracefulKiller:
 def init_logging(app):
     app.logger.handlers.clear()
     app.logger.setLevel(logging.DEBUG)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(Formatter('%(asctime)s,%(levelname)s,%(module)s,%(funcName)s,%(lineno)d,%(message)s'))
+    app.logger.addHandler(stream_handler)
+
     file_handler = RotatingFileHandler(filename=LOGFILE)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(Formatter('%(asctime)s,%(levelname)s,%(module)s,%(funcName)s,%(lineno)d,%(message)s'))

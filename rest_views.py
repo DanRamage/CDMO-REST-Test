@@ -450,11 +450,15 @@ class NERRUpdateAlerts(BaseStationInfoAPI):
                         station_update.alertValue = None
             except ValueError as e:
                 current_app.logger.exception(e)
-            if 'text_alert_number' in args and station_update.alertNumber != args['text_alert_number']:
-                #We need the number and the cell provider to create the email address.
-                if len(args['cellular_carrier']):
-                    if args['cellular_carrier'] in CELL_CARRIER_EMAIL_HOSTS:
-                        station_update.alertNumber = '%s@%s' % (args['text_alert_number'],  CELL_CARRIER_EMAIL_HOSTS[args['cellular_carrier']])
+            if 'text_alert_number' in args:
+                if len(args['text_alert_number']):
+                    if station_update.alertNumber != args['text_alert_number']:
+                        #We need the number and the cell provider to create the email address.
+                        if len(args['cellular_carrier']):
+                            if args['cellular_carrier'] in CELL_CARRIER_EMAIL_HOSTS:
+                                station_update.alertNumber = '%s@%s' % (args['text_alert_number'],  CELL_CARRIER_EMAIL_HOSTS[args['cellular_carrier']])
+                else:
+                    station_update.alertNumber = None
             if 'alert_email_primary' in args and station_update.alertEmail != args['alert_email_primary']:
                 station_update.alertEmail = args['alert_email_primary']
             if 'alert_email_secondary' in args and station_update.alertEmailOther != args['alert_email_secondary']:
